@@ -68,7 +68,7 @@ def update(i, image, tproc):
             tempimg = grab.GetArray().T
             imgarray[:, :, rf] = tempimg
             rf += 1
-            #print(rf, 'success')
+            #basler-video.pyprint(rf, 'success')
         tlap = (time.time() - t0) * 1000
         #if rf >= nf or tlap > tproc:
         #    camera.StopGrabbing()
