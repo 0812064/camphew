@@ -17,9 +17,8 @@ for device in devices:
 
 #defining camera and gui parameters
 
-exptime = 10 #exposure time in ms
-imgcount = 0
-fig, ax = plt.subplots()
+
+
 t00 = time.time()
 
 #initializing camera
@@ -30,9 +29,15 @@ camera.OffsetX.SetValue(0)
 camera.OffsetY.SetValue(0)
 camera.Width.SetValue(camera.WidthMax.GetValue())
 camera.Height.SetValue(camera.HeightMax.GetValue())
+camera.GainAuto.SetValue('Off')
+camera.ExposureAuto.SetValue('Off')
+
+
 #setting camera parameters
+exptime = 5 #exposure time in ms
+
 camera.ExposureTime.SetValue(exptime*1000)
-camera.Height.SetValue(128)
+camera.Height.SetValue(256)
 
 pixel_format = camera.PixelFormat.GetValue()
 print('format:', pixel_format)
@@ -40,6 +45,8 @@ if pixel_format == 'Mono8':
     cam_dtype = np.uint8
 elif pixel_format == 'Mono12' or pixel_format == 'Mono12p':
     cam_dtype = np.uint16
+
+fig, ax = plt.subplots()
 
 camera.StartGrabbing(1)
 grab = camera.RetrieveResult(1000, pylon.TimeoutHandling_Return)
@@ -53,45 +60,36 @@ else:
 
 ypix, xpix = camera.Height.Value, camera.Width.Value
 
-def update(i, image, tproc):
-    global imgcount
+def update(i, image, nf):
     if camera.IsGrabbing():
         camera.StopGrabbing()
-    nf = 10
     imgarray = np.zeros((xpix, ypix, nf), dtype= cam_dtype)
-    camera.StartGrabbingMax(nf)
+    camera.MaxNumBuffer = nf+1
+    camera.OutputQueueSize = camera.MaxNumBuffer.Value
+    camera.StartGrabbing(pylon.GrabStrategy_OneByOne)
+
     t0 = time.time()   #note that system time is given in seconds
     rf = 0
-    while camera.IsGrabbing():
-        grab = camera.RetrieveResult(500, pylon.TimeoutHandling_ThrowException)
-        if grab.GrabSucceeded():
-            tempimg = grab.GetArray().T
-            imgarray[:, :, rf] = tempimg
+    for n in range(nf):
+        grab = camera.RetrieveResult(exptime+50, pylon.TimeoutHandling_ThrowException)
+        if grab and grab.GrabSucceeded():
+            imgarray[:, :, rf] = grab.GetArray().T
             rf += 1
-            #basler-video.pyprint(rf, 'success')
-        tlap = (time.time() - t0) * 1000
-        #if rf >= nf or tlap > tproc:
-        #    camera.StopGrabbing()
+            grab.Release()
 
-    grab.Release()
+    tlap = (time.time() - t0) * 1000
     print(f'Acquired {rf} of {nf} possible frames in {tlap} ms')
-    imgcount += rf
-    image = tempimg
+    image = np.mean(imgarray,axis=2)
     im.set_data(image)
     fig.canvas.draw()
     fig.canvas.flush_events()
 
-
-
-tproc = 1000     #time duration in ms of image processing
-ani = animation.FuncAnimation(fig, update, fargs=(image, tproc), interval=tproc+500)
+nf = 10   # number of frames to grab an analyze between views
+tproc = nf * exptime + 100   #time duration in ms of image processing, empirically adjusted
+ani = animation.FuncAnimation(fig, update, fargs=(image, nf), interval=tproc)
 plt.show()
 
 
 #closing the camera processes
-print(f'Acquired {imgcount} frames in {time.time()-t00:.0f} seconds')
 
 camera.Close()
-
-
-

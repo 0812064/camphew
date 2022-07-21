@@ -19,8 +19,7 @@ for device in devices:
 
 #defining camera
 
-exptime = 10 #exposure time in ms
-imgcount = 0
+exptime = 2 #exposure time in ms
 
 t00 = time.time()
 
@@ -33,6 +32,8 @@ camera.OffsetX.SetValue(0)
 camera.OffsetY.SetValue(0)
 camera.Width.SetValue(camera.WidthMax.GetValue())
 camera.Height.SetValue(camera.HeightMax.GetValue())
+camera.GainAuto.SetValue('Off')
+camera.ExposureAuto.SetValue('Off')
 
 camera.ExposureTime.SetValue(exptime*1000)
 camera.Height.SetValue(64)
@@ -73,7 +74,7 @@ def multiframe1(i, size, tproc):
     t0 = time.time()   #note that system time is given in seconds
     rf = 0
     while camera.IsGrabbing():
-        grab = camera.RetrieveResult(300, pylon.TimeoutHandling_ThrowException)
+        grab = camera.RetrieveResult(exptime+50, pylon.TimeoutHandling_ThrowException)
         if grab.GrabSucceeded():
             tempimg = grab.GetArray().T
             imgarray[:, :, rf] = tempimg
@@ -107,7 +108,7 @@ def multiframe2(i, size, tproc):
     t0 = time.time()   #note that system time is given in seconds
     rf = 0
     for rf in range(i):
-        grab = camera.RetrieveResult(300, pylon.TimeoutHandling_ThrowException)
+        grab = camera.RetrieveResult(exptime+50, pylon.TimeoutHandling_ThrowException)
         if grab and grab.GrabSucceeded():
             imgarray[:, :, rf] = grab.GetArray().T
             # basler-video.pyprint(rf, 'success')
@@ -122,7 +123,7 @@ def multiframe2(i, size, tproc):
 
 tproc = 3000     #time duration in ms of grabbing an array
 
-for j in range (6):
+for j in range (15):
     dat = multiframe1(j+1, [xpix, ypix], tproc)
     dat = multiframe2(j+1, [xpix, ypix], tproc)
     print(dat.shape)
