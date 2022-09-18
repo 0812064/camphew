@@ -1,12 +1,17 @@
 """
-camphew is a minimalist python package for displaying camera images after light-weight processing.
+camphew is a minimalist python package for teaching computer-controlled instrumentation
 
 ---
 current features and compatibilities:
-    + runs a Basler cameara using the pypylon package
+    + runs a Basler camera using the pypylon package
     + have basic user interactions based on the matplotlib widget features
 
 ---
+
+TODO:
+adjust start.py to work with config files
+
+
 ::author::
 Sanli Faez, Utrecht University, s.faez@uu.nl
 """
