@@ -23,8 +23,6 @@ camera.Open()
 camera.ExposureTime.SetValue(50000)
 
 print('Starting to acquire')
-t0 = time.time()
-i = 0
 
 camera.StartGrabbing(1)
 grab = camera.RetrieveResult(1000, pylon.TimeoutHandling_Return)
@@ -35,8 +33,6 @@ if grab.GrabSucceeded():
     plt.show()
 
 camera.Close()
-
-print(f'Acquired {i} frames in {time.time()-t0:.0f} seconds')
 
 
 

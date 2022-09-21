@@ -34,10 +34,10 @@ camera.ExposureAuto.SetValue('Off')
 
 
 #setting camera parameters
-exptime = 5 #exposure time in ms
+exptime = 2 #exposure time in ms
 
 camera.ExposureTime.SetValue(exptime*1000)
-camera.Height.SetValue(256)
+#camera.Height.SetValue(350)
 
 pixel_format = camera.PixelFormat.GetValue()
 print('format:', pixel_format)
@@ -71,7 +71,7 @@ def update(i, image, nf):
     t0 = time.time()   #note that system time is given in seconds
     rf = 0
     for n in range(nf):
-        grab = camera.RetrieveResult(exptime+50, pylon.TimeoutHandling_ThrowException)
+        grab = camera.RetrieveResult(exptime+180, pylon.TimeoutHandling_ThrowException)
         if grab and grab.GrabSucceeded():
             imgarray[:, :, rf] = grab.GetArray().T
             rf += 1
@@ -84,8 +84,8 @@ def update(i, image, nf):
     fig.canvas.draw()
     fig.canvas.flush_events()
 
-nf = 10   # number of frames to grab an analyze between views
-tproc = nf * exptime + 100   #time duration in ms of image processing, empirically adjusted
+nf = 2   # number of frames to grab an analyze between views
+tproc = nf * exptime + 200   #time duration in ms of image processing, empirically adjusted
 ani = animation.FuncAnimation(fig, update, fargs=(image, nf), interval=tproc)
 plt.show()
 
