@@ -49,6 +49,7 @@ bprev.on_clicked(callback.prev)
 
 plt.show()
 
+
 #############################################################################
 #
 # .. admonition:: References
